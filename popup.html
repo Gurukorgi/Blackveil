@@ -46,9 +46,16 @@
             Blackveil OFF
           </button>
           <p id="global-help" class="hint global-hint">
-            When OFF, nothing is themed. When ON, only allowed sites get Blackveil (and Night Shift when enabled).
+            When OFF, nothing changes. When ON, <strong>only domains you allow</strong> get dark mode — turning ON alone does
+            not theme the tab until you add this site (button below) or use the allowed list.
           </p>
         </section>
+
+        <div id="allowCallout" class="allow-callout hidden" role="status">
+          <strong>This tab is not allowed yet.</strong>
+          Blackveil ignores this page until you add <span id="allowCalloutDomain"></span>. Use
+          <strong>Enable Blackveil on this site</strong> below.
+        </div>
 
         <section class="card" aria-labelledby="current-heading">
           <h2 id="current-heading" class="section-label">Current site</h2>
@@ -74,7 +81,9 @@
           <h2 id="sites-list-heading" class="section-label">Allowed sites</h2>
           <p class="hint list-hint">Theming applies to these domains and subdomains.</p>
           <ul id="allowedList" class="allowed-list" aria-label="Allowed sites"></ul>
-          <p id="allowedListEmpty" class="hint empty-list hidden">No sites yet.</p>
+          <p id="allowedListEmpty" class="hint empty-list hidden">
+            No sites yet. The page you are on will stay unchanged until you allow its domain (button above).
+          </p>
         </section>
       </div>
 

@@ -171,16 +171,23 @@ function detectPageDarkThemeHints() {
   return false;
 }
 
+function isGoogleDocsEditorHost() {
+  const h = getHostname();
+  return h === 'docs.google.com';
+}
+
 /**
  * minimal = respect + page already themed dark (gentle polish only).
  * soft = page already themed dark, light filter tweak.
- * forced = typical light sites — paint surfaces/text dark (no invert / no “theme filter”).
+ * invert-canvas-app = Google Docs/Sheets Kix — canvas must NOT be counter-inverted or the page stays white with illegible ink.
+ * forced = typical light sites — structural !important (breaks canvas editors if misapplied).
  */
 function pickStyleMode(settings) {
   const pageDark = detectPageDarkThemeHints();
   const respect = isRespectEnabledForHost(getHostname(), settings.respectSiteThemes);
   if (respect && pageDark) return 'minimal';
   if (pageDark) return 'soft';
+  if (isGoogleDocsEditorHost()) return 'invert-canvas-app';
   return 'forced';
 }
 
@@ -225,6 +232,26 @@ body {
 }
 html {
   filter: brightness(${b / 100}) contrast(${c / 100}) sepia(${s / 100})${ns}${g} !important;
+}
+`;
+  }
+
+  /* Google Docs: editor draws to <canvas>. Global invert + counter-invert on canvas restored a white “paper”
+   * and broke contrast. Counter-invert everything except canvas so tiles stay inverted (dark + readable). */
+  if (mode === 'invert-canvas-app') {
+    return `
+:root { color-scheme: dark !important; }
+html {
+  background-color: ${rootBg} !important;
+  filter: invert(1) hue-rotate(180deg) brightness(${b / 100}) contrast(${c / 100}) sepia(${s / 100})${ns}${g} !important;
+}
+body { background-color: transparent !important; }
+img, picture, video, svg, iframe,
+[role="img"], object, embed {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+[style*="background-image"]:not(canvas) {
+  filter: invert(1) hue-rotate(180deg) !important;
 }
 `;
   }

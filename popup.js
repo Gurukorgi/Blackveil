@@ -112,6 +112,8 @@ const els = {
   scheduleNightEndHour: document.getElementById('scheduleNightEndHour'),
   scheduleCustomStart: document.getElementById('scheduleCustomStart'),
   scheduleCustomEnd: document.getElementById('scheduleCustomEnd'),
+  allowCallout: document.getElementById('allowCallout'),
+  allowCalloutDomain: document.getElementById('allowCalloutDomain'),
 };
 
 let sliderSaveTimer = 0;
@@ -175,6 +177,26 @@ function hostMatchesAllowed(hostnameNorm, allowedEntryNorm) {
 function isRespectOnForDomain(domainNorm, respectList) {
   const h = normalizeDomainInput(domainNorm);
   return respectList.some((entry) => hostMatchesAllowed(h, normalizeDomainInput(entry)));
+}
+
+/** Same rules as content script: exact host or subdomain of an allowed entry. */
+function isDomainInAllowedList(domainNorm, allowedSites) {
+  const h = normalizeDomainInput(domainNorm);
+  if (!h) return false;
+  const list = Array.isArray(allowedSites) ? allowedSites : [];
+  return list.some((entry) => hostMatchesAllowed(h, normalizeDomainInput(entry)));
+}
+
+function updateAllowCallout(m) {
+  const show =
+    m.globalEnabled === true &&
+    currentTabContext?.isHttp &&
+    currentTabContext?.domainNorm &&
+    !isDomainInAllowedList(currentTabContext.domainNorm, m.allowedSites);
+  els.allowCallout.classList.toggle('hidden', !show);
+  if (show) {
+    els.allowCalloutDomain.textContent = currentTabContext.domainNorm;
+  }
 }
 
 function updateSliderDisabled(globalOn) {
@@ -326,6 +348,7 @@ function applyUiFromSettings(s) {
 
   updateRespectCheckbox();
   renderAllowedList(m.allowedSites);
+  updateAllowCallout(m);
 }
 
 function updateSchedulePanels() {
@@ -415,6 +438,7 @@ async function refreshCurrentTabChrome() {
   currentTabContext = await getActiveTabContext();
   updateCurrentSiteUi();
   updateRespectCheckbox();
+  chrome.storage.sync.get(DEFAULTS, (raw) => updateAllowCallout(mergeS(raw)));
 }
 
 async function notifyTabRefresh(tabId) {
