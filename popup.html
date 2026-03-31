@@ -18,79 +18,171 @@
       </div>
     </header>
 
+    <nav class="tab-strip" role="tablist" aria-label="Blackveil sections">
+      <button type="button" class="tab active" role="tab" id="tab-home" aria-selected="true" aria-controls="panel-home" data-panel="home">
+        Home
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-look" aria-selected="false" aria-controls="panel-look" data-panel="look">
+        Themes
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-schedule" aria-selected="false" aria-controls="panel-schedule" data-panel="schedule">
+        Schedule
+      </button>
+    </nav>
+
     <main class="main" role="main">
-      <section class="card card-global" aria-labelledby="global-heading">
-        <h2 id="global-heading" class="sr-only">Global power</h2>
-        <button
-          type="button"
-          id="globalToggle"
-          class="global-toggle"
-          aria-pressed="false"
-          aria-describedby="global-help"
-        >
-          Blackveil OFF
-        </button>
-        <p id="global-help" class="hint global-hint">
-          When OFF, no site is darkened. When ON, only domains in your allowed list are themed.
-          Enabling the current site also turns Blackveil ON so it applies right away.
-        </p>
-        <p class="live-region" id="statusLive" aria-live="polite"></p>
-      </section>
+      <p class="live-region live-region-top" id="statusLive" aria-live="polite"></p>
 
-      <section class="card" aria-labelledby="current-heading">
-        <h2 id="current-heading" class="section-label">Current site</h2>
-        <p id="currentDomain" class="current-domain" aria-live="polite">—</p>
-        <p id="currentUnavailable" class="hint current-unavailable hidden">
-          Open a normal http(s) page to enable or disable Blackveil for that site.
-        </p>
-        <div class="btn-row" id="currentActions">
-          <button type="button" id="btnEnableSite" class="btn btn-primary">
-            Enable Blackveil on this site
+      <div class="tab-panel active" id="panel-home" role="tabpanel" aria-labelledby="tab-home">
+        <section class="card card-global">
+          <h2 class="sr-only">Global</h2>
+          <button
+            type="button"
+            id="globalToggle"
+            class="global-toggle"
+            aria-pressed="false"
+            aria-describedby="global-help"
+          >
+            Blackveil OFF
           </button>
-          <button type="button" id="btnDisableSite" class="btn btn-ghost">
-            Disable on this site
+          <p id="global-help" class="hint global-hint">
+            When OFF, nothing is themed. When ON, only allowed sites get Blackveil (and Night Shift when enabled).
+          </p>
+        </section>
+
+        <section class="card" aria-labelledby="current-heading">
+          <h2 id="current-heading" class="section-label">Current site</h2>
+          <p id="currentDomain" class="current-domain" aria-live="polite">—</p>
+          <p id="currentUnavailable" class="hint current-unavailable hidden">
+            Open an http(s) page to manage this site.
+          </p>
+          <div class="btn-row" id="currentActions">
+            <button type="button" id="btnEnableSite" class="btn btn-primary">
+              Enable Blackveil on this site
+            </button>
+            <button type="button" id="btnDisableSite" class="btn btn-ghost">
+              Disable on this site
+            </button>
+            <label class="respect-row">
+              <input type="checkbox" id="respectSiteToggle" />
+              <span>Respect native dark (minimal overlay when site is already dark)</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="sites-list-heading">
+          <h2 id="sites-list-heading" class="section-label">Allowed sites</h2>
+          <p class="hint list-hint">Theming applies to these domains and subdomains.</p>
+          <ul id="allowedList" class="allowed-list" aria-label="Allowed sites"></ul>
+          <p id="allowedListEmpty" class="hint empty-list hidden">No sites yet.</p>
+        </section>
+      </div>
+
+      <div class="tab-panel" id="panel-look" role="tabpanel" aria-labelledby="tab-look" hidden>
+        <section class="card" aria-labelledby="preset-heading">
+          <h2 id="preset-heading" class="section-label">Presets</h2>
+          <p class="hint">Pick a look; sliders update. Save your own when dialled in.</p>
+          <div class="preset-grid" id="presetGrid" role="group" aria-label="Theme presets"></div>
+          <button type="button" class="btn btn-secondary full-width" id="saveCustomPreset">
+            Save current as custom preset
           </button>
-        </div>
-      </section>
+        </section>
 
-      <section class="card" aria-labelledby="sites-list-heading">
-        <h2 id="sites-list-heading" class="section-label">Allowed sites</h2>
-        <p class="hint list-hint">Dark mode applies to these domains (and their subdomains).</p>
-        <ul id="allowedList" class="allowed-list" aria-label="Sites with Blackveil allowed"></ul>
-        <p id="allowedListEmpty" class="hint empty-list hidden">No sites yet. Add the current tab or use the buttons above.</p>
-      </section>
+        <section class="card" aria-labelledby="night-heading">
+          <h2 id="night-heading" class="section-label">Night shift</h2>
+          <p class="hint">Warm, low-blue tint stacks on your theme (allowed sites only).</p>
+          <button type="button" id="nightShiftToggle" class="night-shift-toggle" aria-pressed="false">
+            Night shift OFF
+          </button>
+          <div class="control">
+            <label for="nightShiftWarmth">Warmth <span id="nightShiftWarmthVal" class="val">40</span></label>
+            <input type="range" id="nightShiftWarmth" min="0" max="100" value="40" step="1" />
+          </div>
+        </section>
 
-      <section class="card" aria-labelledby="adjust-heading">
-        <h2 id="adjust-heading" class="section-label">Fine-tune</h2>
-        <p id="slidersHelp" class="hint sliders-help">
-          Brightness, contrast, and sepia apply only when Blackveil is ON and the site is allowed.
-        </p>
-        <div class="control">
-          <label for="brightness">Brightness <span id="brightnessVal" class="val">95</span>%</label>
-          <input
-            type="range"
-            id="brightness"
-            min="70"
-            max="115"
-            value="95"
-            step="1"
-            aria-describedby="slidersHelp"
-          />
-        </div>
-        <div class="control">
-          <label for="contrast">Contrast <span id="contrastVal" class="val">105</span>%</label>
-          <input type="range" id="contrast" min="85" max="130" value="105" step="1" aria-describedby="slidersHelp" />
-        </div>
-        <div class="control">
-          <label for="sepia">Sepia warmth <span id="sepiaVal" class="val">8</span>%</label>
-          <input type="range" id="sepia" min="0" max="40" value="8" step="1" aria-describedby="slidersHelp" />
-        </div>
-      </section>
+        <section class="card" aria-labelledby="adjust-heading">
+          <h2 id="adjust-heading" class="section-label">Fine-tune</h2>
+          <p id="slidersHelp" class="hint sliders-help">Used for allowed sites while global is ON.</p>
+          <div class="control">
+            <label for="brightness">Brightness <span id="brightnessVal" class="val">95</span>%</label>
+            <input
+              type="range"
+              id="brightness"
+              min="70"
+              max="115"
+              value="95"
+              step="1"
+              aria-describedby="slidersHelp"
+            />
+          </div>
+          <div class="control">
+            <label for="contrast">Contrast <span id="contrastVal" class="val">105</span>%</label>
+            <input type="range" id="contrast" min="85" max="130" value="105" step="1" />
+          </div>
+          <div class="control">
+            <label for="sepia">Sepia <span id="sepiaVal" class="val">8</span>%</label>
+            <input type="range" id="sepia" min="0" max="40" value="8" step="1" />
+          </div>
+        </section>
+      </div>
+
+      <div class="tab-panel" id="panel-schedule" role="tabpanel" aria-labelledby="tab-schedule" hidden>
+        <section class="card">
+          <h2 class="section-label">Automatic schedule</h2>
+          <p class="hint">
+            While active, global turns ON during night hours and OFF during day (re-checked every minute).
+          </p>
+          <label class="respect-row schedule-enable-row">
+            <input type="checkbox" id="scheduleEnabled" />
+            <span>Enable schedule</span>
+          </label>
+
+          <fieldset class="schedule-fieldset">
+            <legend class="sr-only">Schedule mode</legend>
+            <div class="segmented" role="radiogroup" aria-label="Schedule type">
+              <label class="seg">
+                <input type="radio" name="scheduleMode" value="sunset" checked />
+                <span>Sunset to sunrise</span>
+              </label>
+              <label class="seg">
+                <input type="radio" name="scheduleMode" value="custom" />
+                <span>Custom times</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div id="scheduleSunsetPanel" class="schedule-sub">
+            <p class="hint">Uses local clock: night spans from start hour through midnight to end hour.</p>
+            <div class="row-2">
+              <label class="stack">
+                Night starts (hour)
+                <input type="number" id="scheduleNightStartHour" min="0" max="23" value="19" />
+              </label>
+              <label class="stack">
+                Night ends (hour)
+                <input type="number" id="scheduleNightEndHour" min="0" max="23" value="7" />
+              </label>
+            </div>
+          </div>
+
+          <div id="scheduleCustomPanel" class="schedule-sub hidden">
+            <div class="row-2">
+              <label class="stack">
+                Night on at
+                <input type="time" id="scheduleCustomStart" value="22:00" />
+              </label>
+              <label class="stack">
+                Night off at
+                <input type="time" id="scheduleCustomEnd" value="07:00" />
+              </label>
+            </div>
+          </div>
+        </section>
+      </div>
 
       <p class="footer-hint">
-        Shortcut: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>
-        <span class="sep">·</span>
-        <span>Settings sync with your Chrome profile.</span>
+        <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> global ·
+        <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> night shift · Page right-click menu
       </p>
     </main>
 
