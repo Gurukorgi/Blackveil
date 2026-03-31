@@ -100,6 +100,13 @@ function rootBgFromTone(tone, mode) {
   return mode === 'soft' || mode === 'minimal' ? '#121212' : '#0a0a0a';
 }
 
+/** Subtle card / elevated surface on top of root bg */
+function surfaceBgFromRoot(rootBg) {
+  if (rootBg === '#000000') return '#0a0a0a';
+  if (rootBg === '#0a0a0a') return '#141414';
+  return '#1a1a1a';
+}
+
 /** Warm blue-light reduction; strength from nightShiftWarmth 0–1 when night shift on. */
 function nightShiftFilterExtra(settings) {
   if (!settings.nightShiftEnabled) return '';
@@ -132,19 +139,16 @@ function attributeImpliesDark(el) {
 }
 
 /**
- * Expanded native-dark signals: media query, html/body classes, data-* themes, common subtree hints.
+ * True when the *page* declares a dark theme (classes, data-attributes, meta).
+ * We intentionally do NOT use prefers-color-scheme alone: many users run OS dark
+ * mode while sites stay light — treating that as "soft" mode made pages barely change.
  */
-function detectNativeDarkPreference() {
-  const prefersDark =
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches;
-
+function detectPageDarkThemeHints() {
   const html = document.documentElement;
   const body = document.body;
 
   if (classListMatchesDark(html) || classListMatchesDark(body)) return true;
   if (attributeImpliesDark(html) || attributeImpliesDark(body)) return true;
-  if (prefersDark) return true;
 
   try {
     if (
@@ -167,13 +171,17 @@ function detectNativeDarkPreference() {
   return false;
 }
 
-/** pickStyleMode: minimal if user respects this site and it is already dark; else soft if native dark; else invert. */
+/**
+ * minimal = respect + page already themed dark (gentle polish only).
+ * soft = page already themed dark, light filter tweak.
+ * forced = typical light sites — paint surfaces/text dark (no invert / no “theme filter”).
+ */
 function pickStyleMode(settings) {
-  const native = detectNativeDarkPreference();
+  const pageDark = detectPageDarkThemeHints();
   const respect = isRespectEnabledForHost(getHostname(), settings.respectSiteThemes);
-  if (respect && native) return 'minimal';
-  if (native) return 'soft';
-  return 'invert';
+  if (respect && pageDark) return 'minimal';
+  if (pageDark) return 'soft';
+  return 'forced';
 }
 
 function buildCss(settings, mode) {
@@ -221,22 +229,90 @@ html {
 `;
   }
 
+  /* Structural forced dark — real surfaces & text; sliders = brightness/contrast only (+ optional grayscale). */
+  const surf = surfaceBgFromRoot(rootBg);
+  const link = '#8ab4f8';
+  const border = '#3d3d42';
+  const inputBg = '#26262b';
+  const tune = `brightness(${b / 100}) contrast(${c / 100})${g}`;
+  const wNight = settings.nightShiftEnabled
+    ? Math.min(1, Math.max(0, (Number(settings.nightShiftWarmth) || 0) / 100))
+    : 0;
+  const nightOpacity = (0.04 + 0.14 * wNight).toFixed(3);
+
   return `
-:root { color-scheme: dark !important; }
+:root {
+  color-scheme: dark !important;
+  --bv-bg: ${rootBg};
+  --bv-surface: ${surf};
+  --bv-fg: ${rootFg};
+  --bv-link: ${link};
+  --bv-border: ${border};
+  --bv-input: ${inputBg};
+}
 html {
-  background-color: ${rootBg} !important;
-  filter: invert(1) hue-rotate(180deg) brightness(${b / 100}) contrast(${c / 100}) sepia(${
-    s / 100
-  })${ns}${g} !important;
+  background-color: var(--bv-bg) !important;
+  color: var(--bv-fg) !important;
+  filter: ${tune} !important;
 }
-body { background-color: transparent !important; }
-img, picture, video, canvas, svg, iframe,
-[role="img"], object, embed {
-  filter: invert(1) hue-rotate(180deg) !important;
+${
+  settings.nightShiftEnabled
+    ? `
+html::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2147483646;
+  background: rgba(255, 145, 75, ${nightOpacity});
+  mix-blend-mode: multiply;
+}`
+    : ''
 }
-[style*="background-image"] {
-  filter: invert(1) hue-rotate(180deg) !important;
+body {
+  background-color: var(--bv-bg) !important;
+  color: var(--bv-fg) !important;
 }
+main, article, section, nav, aside, header, footer, form,
+[role="main"], [role="navigation"], [role="banner"], [role="contentinfo"], [role="dialog"],
+[class*="container"], [class*="wrapper"], [class*="content"], [class*="layout"], [class*="Card"], [class*="card"],
+[id*="content"], [id*="main"], [id*="wrapper"] {
+  background-color: var(--bv-bg) !important;
+  color: var(--bv-fg) !important;
+  border-color: var(--bv-border) !important;
+}
+div {
+  background-color: var(--bv-bg) !important;
+  color: var(--bv-fg) !important;
+  border-color: var(--bv-border) !important;
+}
+p, span, li, dd, dt, label, figcaption, h1, h2, h3, h4, h5, h6,
+blockquote, small, strong, em, b, i, cite {
+  color: var(--bv-fg) !important;
+}
+a, a:visited { color: var(--bv-link) !important; }
+button, input, textarea, select, optgroup {
+  background-color: var(--bv-input) !important;
+  color: var(--bv-fg) !important;
+  border-color: var(--bv-border) !important;
+}
+table, thead, tbody, tfoot, tr { background-color: var(--bv-bg) !important; border-color: var(--bv-border) !important; }
+th, td {
+  background-color: var(--bv-surface) !important;
+  color: var(--bv-fg) !important;
+  border-color: var(--bv-border) !important;
+}
+pre, code, kbd, samp {
+  background-color: var(--bv-surface) !important;
+  color: var(--bv-fg) !important;
+  border-color: var(--bv-border) !important;
+}
+hr { border-color: var(--bv-border) !important; background-color: var(--bv-border) !important; }
+ul, ol, dl { background-color: transparent !important; color: var(--bv-fg) !important; }
+img, picture, video, canvas, iframe, embed, object {
+  background-color: transparent !important;
+}
+svg { background-color: transparent !important; }
 `;
 }
 
