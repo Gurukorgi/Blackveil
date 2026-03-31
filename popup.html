@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Blackveil</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="veil" aria-hidden="true"></div>
+    <header class="header" role="banner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div class="brand-text">
+          <h1 class="title">Blackveil</h1>
+          <p class="tagline">Dark elegance for every tab</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="main" role="main">
+      <section class="card card-global" aria-labelledby="global-heading">
+        <h2 id="global-heading" class="sr-only">Global power</h2>
+        <button
+          type="button"
+          id="globalToggle"
+          class="global-toggle"
+          aria-pressed="false"
+          aria-describedby="global-help"
+        >
+          Blackveil OFF
+        </button>
+        <p id="global-help" class="hint global-hint">
+          When OFF, no site is darkened. When ON, only domains in your allowed list are themed.
+          Enabling the current site also turns Blackveil ON so it applies right away.
+        </p>
+        <p class="live-region" id="statusLive" aria-live="polite"></p>
+      </section>
+
+      <section class="card" aria-labelledby="current-heading">
+        <h2 id="current-heading" class="section-label">Current site</h2>
+        <p id="currentDomain" class="current-domain" aria-live="polite">—</p>
+        <p id="currentUnavailable" class="hint current-unavailable hidden">
+          Open a normal http(s) page to enable or disable Blackveil for that site.
+        </p>
+        <div class="btn-row" id="currentActions">
+          <button type="button" id="btnEnableSite" class="btn btn-primary">
+            Enable Blackveil on this site
+          </button>
+          <button type="button" id="btnDisableSite" class="btn btn-ghost">
+            Disable on this site
+          </button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="sites-list-heading">
+        <h2 id="sites-list-heading" class="section-label">Allowed sites</h2>
+        <p class="hint list-hint">Dark mode applies to these domains (and their subdomains).</p>
+        <ul id="allowedList" class="allowed-list" aria-label="Sites with Blackveil allowed"></ul>
+        <p id="allowedListEmpty" class="hint empty-list hidden">No sites yet. Add the current tab or use the buttons above.</p>
+      </section>
+
+      <section class="card" aria-labelledby="adjust-heading">
+        <h2 id="adjust-heading" class="section-label">Fine-tune</h2>
+        <p id="slidersHelp" class="hint sliders-help">
+          Brightness, contrast, and sepia apply only when Blackveil is ON and the site is allowed.
+        </p>
+        <div class="control">
+          <label for="brightness">Brightness <span id="brightnessVal" class="val">95</span>%</label>
+          <input
+            type="range"
+            id="brightness"
+            min="70"
+            max="115"
+            value="95"
+            step="1"
+            aria-describedby="slidersHelp"
+          />
+        </div>
+        <div class="control">
+          <label for="contrast">Contrast <span id="contrastVal" class="val">105</span>%</label>
+          <input type="range" id="contrast" min="85" max="130" value="105" step="1" aria-describedby="slidersHelp" />
+        </div>
+        <div class="control">
+          <label for="sepia">Sepia warmth <span id="sepiaVal" class="val">8</span>%</label>
+          <input type="range" id="sepia" min="0" max="40" value="8" step="1" aria-describedby="slidersHelp" />
+        </div>
+      </section>
+
+      <p class="footer-hint">
+        Shortcut: <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>
+        <span class="sep">·</span>
+        <span>Settings sync with your Chrome profile.</span>
+      </p>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

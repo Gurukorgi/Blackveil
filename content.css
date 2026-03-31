@@ -1,0 +1,4 @@
+/**
+ * Blackveil — MV3 injects this file at document_start alongside content.js.
+ * Core theming lives in content.js so brightness/contrast/sepia stay in sync with storage.
+ */
