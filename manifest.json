@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Blackveil",
-  "version": "1.3.0",
+  "version": "1.5.0",
   "description": "Selective elegant dark mode for websites you choose. Embrace the eternal dark.",
   "icons": {
     "16": "icons/icon16.png",

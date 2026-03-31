@@ -173,6 +173,12 @@ function savePartial(patch) {
   return chrome.storage.sync.set(patch);
 }
 
+function getSettingsAsync() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(DEFAULTS, (raw) => resolve(mergeS(raw)));
+  });
+}
+
 function sortedUniqueDomains(list) {
   const seen = new Set();
   const out = [];
@@ -288,7 +294,19 @@ function renderPaletteGrid() {
     btn.addEventListener('click', async () => {
       await savePartial({ colorPaletteId: p.id });
       highlightActivePalette(p.id);
-      announce(`Palette: ${p.label}`);
+      const m = await getSettingsAsync();
+      await refreshCurrentTabChrome();
+      let msg = `Palette: ${p.label}`;
+      if (!m.globalEnabled) {
+        msg = 'Palette saved. Turn Blackveil ON on the Home tab, then allow this site.';
+      } else if (
+        currentTabContext?.isHttp &&
+        currentTabContext?.domainNorm &&
+        !isDomainInAllowedList(currentTabContext.domainNorm, m.allowedSites)
+      ) {
+        msg = `Palette saved. Add ${currentTabContext.domainNorm} to Allowed sites (Home) to see it here.`;
+      }
+      announce(msg);
       await notifyAllWebTabsRefresh();
     });
     els.paletteGrid.appendChild(btn);
