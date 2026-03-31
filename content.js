@@ -7,6 +7,16 @@ const STYLE_MAIN_ID = 'blackveil-main-styles';
 const STYLE_SYNC_ID = 'blackveil-sync-blocker';
 const DATA_ATTR = 'data-blackveil';
 
+/** Default canvas background — paired with dark foreground and `color-scheme: light`. */
+const BV_BG = '#9CA3AF';
+const BV_BG_DEEP = '#8B95A3';
+const BV_BG_OLED = '#6B7280';
+const BV_BG_SURFACE = '#B0B8C4';
+const BV_FG = '#111827';
+const BV_LINK = '#1e3a8a';
+const BV_BORDER = '#4b5563';
+const BV_INPUT = '#e5e7eb';
+
 const STORAGE_DEFAULTS = {
   globalEnabled: false,
   allowedSites: [],
@@ -95,16 +105,17 @@ function shouldApplyVeil(settings) {
 
 function rootBgFromTone(tone, mode) {
   const t = tone || 'soft';
-  if (t === 'oled') return '#000000';
-  if (t === 'void') return '#0a0a0a';
-  return mode === 'soft' || mode === 'minimal' ? '#121212' : '#0a0a0a';
+  if (t === 'oled') return BV_BG_OLED;
+  if (t === 'void') return BV_BG_DEEP;
+  return BV_BG;
 }
 
-/** Subtle card / elevated surface on top of root bg */
+/** Subtle elevated surface on top of root bg */
 function surfaceBgFromRoot(rootBg) {
-  if (rootBg === '#000000') return '#0a0a0a';
-  if (rootBg === '#0a0a0a') return '#141414';
-  return '#1a1a1a';
+  if (rootBg === BV_BG_OLED) return '#7C8491';
+  if (rootBg === BV_BG_DEEP) return BV_BG;
+  if (rootBg === BV_BG) return BV_BG_SURFACE;
+  return BV_BG_SURFACE;
 }
 
 /** Warm blue-light reduction; strength from nightShiftWarmth 0–1 when night shift on. */
@@ -197,7 +208,7 @@ function buildCss(settings, mode) {
   const s = Number(settings.sepia) || 0;
   const tone = settings.rootBgTone || 'soft';
   const rootBg = rootBgFromTone(tone, mode);
-  const rootFg = mode === 'minimal' ? '#e8e8e8' : '#eaeaea';
+  const rootFg = BV_FG;
   const ns = nightShiftFilterExtra(settings);
   const g = grayscaleExtra(settings);
 
@@ -206,7 +217,7 @@ function buildCss(settings, mode) {
     const cf = Math.min(1.08, 0.98 + (c / 100) * 0.1);
     const sep = (s / 100) * 0.35;
     return `
-:root { color-scheme: dark !important; }
+:root { color-scheme: light !important; }
 html {
   background-color: ${rootBg} !important;
   color: ${rootFg} !important;
@@ -221,7 +232,7 @@ body {
 
   if (mode === 'soft') {
     return `
-:root { color-scheme: dark !important; }
+:root { color-scheme: light !important; }
 html {
   background-color: ${rootBg} !important;
   color: ${rootFg} !important;
@@ -256,11 +267,8 @@ img, picture, video, svg, iframe,
 `;
   }
 
-  /* Structural forced dark — real surfaces & text; sliders = brightness/contrast only (+ optional grayscale). */
+  /* Structural recolor — gray canvas + dark text; sliders = brightness/contrast only (+ optional grayscale). */
   const surf = surfaceBgFromRoot(rootBg);
-  const link = '#8ab4f8';
-  const border = '#3d3d42';
-  const inputBg = '#26262b';
   const tune = `brightness(${b / 100}) contrast(${c / 100})${g}`;
   const wNight = settings.nightShiftEnabled
     ? Math.min(1, Math.max(0, (Number(settings.nightShiftWarmth) || 0) / 100))
@@ -269,13 +277,13 @@ img, picture, video, svg, iframe,
 
   return `
 :root {
-  color-scheme: dark !important;
+  color-scheme: light !important;
   --bv-bg: ${rootBg};
   --bv-surface: ${surf};
   --bv-fg: ${rootFg};
-  --bv-link: ${link};
-  --bv-border: ${border};
-  --bv-input: ${inputBg};
+  --bv-link: ${BV_LINK};
+  --bv-border: ${BV_BORDER};
+  --bv-input: ${BV_INPUT};
 }
 html {
   background-color: var(--bv-bg) !important;
