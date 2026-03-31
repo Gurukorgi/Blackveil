@@ -16,6 +16,7 @@ const STORAGE_DEFAULTS = {
   activePresetId: 'soft-eclipse',
   customPreset: null,
   rootBgTone: 'soft',
+  colorPaletteId: 'neutral-grey-pro',
   presetGrayscale: false,
   scheduleEnabled: false,
   scheduleMode: 'sunset',

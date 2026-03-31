@@ -14,6 +14,7 @@ const DEFAULTS = {
   activePresetId: 'soft-eclipse',
   customPreset: null,
   rootBgTone: 'soft',
+  colorPaletteId: 'neutral-grey-pro',
   presetGrayscale: false,
   scheduleEnabled: false,
   scheduleMode: 'sunset',
@@ -22,6 +23,21 @@ const DEFAULTS = {
   scheduleNightStartHour: 19,
   scheduleNightEndHour: 7,
 };
+
+function paletteList() {
+  return typeof self !== 'undefined' && Array.isArray(self.BLACKVEIL_PALETTE_LIST)
+    ? self.BLACKVEIL_PALETTE_LIST
+    : [];
+}
+
+function normalizePaletteId(id) {
+  const map =
+    typeof self !== 'undefined' && self.BLACKVEIL_PALETTE_BY_ID
+      ? self.BLACKVEIL_PALETTE_BY_ID
+      : {};
+  if (id && map[id]) return id;
+  return DEFAULTS.colorPaletteId;
+}
 
 /** Built-in presets: tune sliders + optional night shift / OLED / grayscale. */
 const PRESET_DEFS = [
@@ -94,6 +110,7 @@ const els = {
   allowedList: document.getElementById('allowedList'),
   allowedListEmpty: document.getElementById('allowedListEmpty'),
   presetGrid: document.getElementById('presetGrid'),
+  paletteGrid: document.getElementById('paletteGrid'),
   saveCustomPreset: document.getElementById('saveCustomPreset'),
   nightShiftToggle: document.getElementById('nightShiftToggle'),
   nightShiftWarmth: document.getElementById('nightShiftWarmth'),
@@ -144,6 +161,7 @@ function mergeS(raw) {
   const s = { ...DEFAULTS, ...raw };
   s.allowedSites = Array.isArray(s.allowedSites) ? s.allowedSites : [];
   s.respectSiteThemes = Array.isArray(s.respectSiteThemes) ? s.respectSiteThemes : [];
+  s.colorPaletteId = normalizePaletteId(s.colorPaletteId);
   return s;
 }
 
@@ -237,6 +255,46 @@ function highlightActivePreset(activeId) {
   });
 }
 
+function highlightActivePalette(activeId) {
+  const id = normalizePaletteId(activeId);
+  els.paletteGrid.querySelectorAll('.palette-chip').forEach((btn) => {
+    const on = btn.dataset.paletteId === id;
+    btn.classList.toggle('is-active', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+
+function renderPaletteGrid() {
+  if (!els.paletteGrid) return;
+  els.paletteGrid.innerHTML = '';
+  paletteList().forEach((p) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'palette-chip';
+    btn.dataset.paletteId = p.id;
+    btn.setAttribute('aria-pressed', 'false');
+    const sw = document.createElement('span');
+    sw.className = 'palette-chip-swatch';
+    ;[p.bg, p.surface, p.primary, p.accent].forEach((hex) => {
+      const seg = document.createElement('span');
+      seg.style.background = hex;
+      seg.title = hex;
+      sw.appendChild(seg);
+    });
+    btn.appendChild(sw);
+    const lab = document.createElement('span');
+    lab.textContent = p.label;
+    btn.appendChild(lab);
+    btn.addEventListener('click', async () => {
+      await savePartial({ colorPaletteId: p.id });
+      highlightActivePalette(p.id);
+      announce(`Palette: ${p.label}`);
+      await notifyAllWebTabsRefresh();
+    });
+    els.paletteGrid.appendChild(btn);
+  });
+}
+
 function applyPresetToStorage(presetId, announceMsg = true) {
   const def = PRESET_DEFS.find((p) => p.id === presetId);
   if (!def) return;
@@ -299,12 +357,14 @@ function renderPresetGrid() {
           nightShiftWarmth: Number(els.nightShiftWarmth.value),
           nightShiftEnabled: Boolean(c.nightShiftEnabled),
           rootBgTone: c.rootBgTone ?? s.rootBgTone,
+          colorPaletteId: normalizePaletteId(c.colorPaletteId ?? s.colorPaletteId),
           presetGrayscale: Boolean(c.presetGrayscale),
         });
       } else {
         await savePartial({ activePresetId: 'custom' });
       }
       highlightActivePreset('custom');
+      highlightActivePalette(normalizePaletteId(c?.colorPaletteId ?? s.colorPaletteId));
       announce('Custom preset');
       await notifyAllWebTabsRefresh();
     });
@@ -335,6 +395,7 @@ function applyUiFromSettings(s) {
 
   updateSliderLabels();
   highlightActivePreset(m.activePresetId || 'soft-eclipse');
+  highlightActivePalette(m.colorPaletteId);
 
   els.scheduleEnabled.checked = m.scheduleEnabled === true;
   document.querySelectorAll('input[name="scheduleMode"]').forEach((r) => {
@@ -479,6 +540,7 @@ document.querySelectorAll('.tab-strip .tab').forEach((tabBtn) => {
   });
 });
 
+renderPaletteGrid();
 renderPresetGrid();
 
 els.globalToggle.addEventListener('click', async () => {
@@ -556,6 +618,7 @@ els.saveCustomPreset.addEventListener('click', () => {
       nightShiftWarmth: Number(els.nightShiftWarmth.value),
       nightShiftEnabled: els.nightShiftToggle.getAttribute('aria-pressed') === 'true',
       rootBgTone: m.rootBgTone,
+      colorPaletteId: m.colorPaletteId,
       presetGrayscale: m.presetGrayscale,
     };
     await savePartial({ customPreset: snap, activePresetId: 'custom' });

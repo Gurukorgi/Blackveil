@@ -88,6 +88,12 @@
       </div>
 
       <div class="tab-panel" id="panel-look" role="tabpanel" aria-labelledby="tab-look" hidden>
+        <section class="card" aria-labelledby="palette-heading">
+          <h2 id="palette-heading" class="section-label">Color palette</h2>
+          <p class="hint">Background, surfaces, links, and accents on allowed sites.</p>
+          <div class="palette-grid" id="paletteGrid" role="group" aria-label="Color palettes"></div>
+        </section>
+
         <section class="card" aria-labelledby="preset-heading">
           <h2 id="preset-heading" class="section-label">Presets</h2>
           <p class="hint">Pick a look; sliders update. Save your own when dialled in.</p>
@@ -195,6 +201,7 @@
       </p>
     </main>
 
+    <script src="palettes.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

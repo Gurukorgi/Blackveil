@@ -7,15 +7,7 @@ const STYLE_MAIN_ID = 'blackveil-main-styles';
 const STYLE_SYNC_ID = 'blackveil-sync-blocker';
 const DATA_ATTR = 'data-blackveil';
 
-/** Default canvas background — paired with dark foreground and `color-scheme: light`. */
-const BV_BG = '#9CA3AF';
-const BV_BG_DEEP = '#8B95A3';
-const BV_BG_OLED = '#6B7280';
-const BV_BG_SURFACE = '#B0B8C4';
-const BV_FG = '#111827';
-const BV_LINK = '#1e3a8a';
-const BV_BORDER = '#4b5563';
-const BV_INPUT = '#e5e7eb';
+const DEFAULT_PALETTE_ID = 'neutral-grey-pro';
 
 const STORAGE_DEFAULTS = {
   globalEnabled: false,
@@ -29,6 +21,7 @@ const STORAGE_DEFAULTS = {
   activePresetId: 'soft-eclipse',
   customPreset: null,
   rootBgTone: 'soft',
+  colorPaletteId: DEFAULT_PALETTE_ID,
   presetGrayscale: false,
   scheduleEnabled: false,
   scheduleMode: 'sunset',
@@ -50,6 +43,7 @@ const WATCHED_STORAGE_KEYS = [
   'activePresetId',
   'customPreset',
   'rootBgTone',
+  'colorPaletteId',
   'presetGrayscale',
   'scheduleEnabled',
   'scheduleMode',
@@ -103,19 +97,80 @@ function shouldApplyVeil(settings) {
   );
 }
 
-function rootBgFromTone(tone, mode) {
-  const t = tone || 'soft';
-  if (t === 'oled') return BV_BG_OLED;
-  if (t === 'void') return BV_BG_DEEP;
-  return BV_BG;
+function paletteMap() {
+  return typeof self !== 'undefined' && self.BLACKVEIL_PALETTE_BY_ID
+    ? self.BLACKVEIL_PALETTE_BY_ID
+    : typeof globalThis !== 'undefined' && globalThis.BLACKVEIL_PALETTE_BY_ID
+      ? globalThis.BLACKVEIL_PALETTE_BY_ID
+      : {};
 }
 
-/** Subtle elevated surface on top of root bg */
-function surfaceBgFromRoot(rootBg) {
-  if (rootBg === BV_BG_OLED) return '#7C8491';
-  if (rootBg === BV_BG_DEEP) return BV_BG;
-  if (rootBg === BV_BG) return BV_BG_SURFACE;
-  return BV_BG_SURFACE;
+function hexToRgb(hex) {
+  const h = String(hex || '').replace('#', '');
+  if (h.length !== 6) return { r: 24, g: 24, b: 27 };
+  const n = parseInt(h, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function rgbToChannel(x) {
+  return Math.min(255, Math.max(0, Math.round(x)));
+}
+
+function rgbToHex(r, g, b) {
+  return (
+    '#' +
+    [r, g, b]
+      .map((c) => rgbToChannel(c).toString(16).padStart(2, '0'))
+      .join('')
+  );
+}
+
+function mixHex(a, b, t) {
+  const A = hexToRgb(a);
+  const B = hexToRgb(b);
+  const u = Math.min(1, Math.max(0, t));
+  return rgbToHex(A.r + (B.r - A.r) * u, A.g + (B.g - A.g) * u, A.b + (B.b - A.b) * u);
+}
+
+/** Presets still set rootBgTone: nudge palette colors toward black for void / oled. */
+function applyToneToHex(hex, tone) {
+  const t = tone || 'soft';
+  if (t === 'void') return mixHex(hex, '#000000', 0.12);
+  if (t === 'oled') return mixHex(hex, '#000000', 0.28);
+  return hex;
+}
+
+/**
+ * Resolved colors for the active palette (+ optional tone). Maps design tokens to CSS.
+ */
+function getPaletteTokens(settings) {
+  const map = paletteMap();
+  const id = settings.colorPaletteId || DEFAULT_PALETTE_ID;
+  const base = map[id] || map[DEFAULT_PALETTE_ID];
+  if (!base) {
+    return {
+      rootBg: '#18181B',
+      surface: '#27272A',
+      fg: '#FAFAFA',
+      link: '#2563EB',
+      border: '#3f3f46',
+      input: '#3f3f46',
+    };
+  }
+  const tone = settings.rootBgTone || 'soft';
+  const rootBg = applyToneToHex(base.bg, tone);
+  const surface = applyToneToHex(base.surface, tone);
+  return {
+    rootBg,
+    surface,
+    fg: base.textMain,
+    link: base.primary,
+    border: mixHex(surface, base.textMuted, 0.5),
+    input: mixHex(surface, rootBg, 0.4),
+    accent: base.accent,
+    secondary: base.secondary,
+    muted: base.textMuted,
+  };
 }
 
 /** Warm blue-light reduction; strength from nightShiftWarmth 0–1 when night shift on. */
@@ -206,9 +261,8 @@ function buildCss(settings, mode) {
   const b = Number(settings.brightness) || 95;
   const c = Number(settings.contrast) || 105;
   const s = Number(settings.sepia) || 0;
-  const tone = settings.rootBgTone || 'soft';
-  const rootBg = rootBgFromTone(tone, mode);
-  const rootFg = BV_FG;
+  const tokens = getPaletteTokens(settings);
+  const { rootBg, surface, fg: rootFg, link, border, input } = tokens;
   const ns = nightShiftFilterExtra(settings);
   const g = grayscaleExtra(settings);
 
@@ -217,7 +271,7 @@ function buildCss(settings, mode) {
     const cf = Math.min(1.08, 0.98 + (c / 100) * 0.1);
     const sep = (s / 100) * 0.35;
     return `
-:root { color-scheme: light !important; }
+:root { color-scheme: dark !important; }
 html {
   background-color: ${rootBg} !important;
   color: ${rootFg} !important;
@@ -227,12 +281,13 @@ body {
   background-color: transparent !important;
   color: inherit !important;
 }
+a, a:visited { color: ${link} !important; }
 `;
   }
 
   if (mode === 'soft') {
     return `
-:root { color-scheme: light !important; }
+:root { color-scheme: dark !important; }
 html {
   background-color: ${rootBg} !important;
   color: ${rootFg} !important;
@@ -241,6 +296,7 @@ body {
   background-color: transparent !important;
   color: inherit !important;
 }
+a, a:visited { color: ${link} !important; }
 html {
   filter: brightness(${b / 100}) contrast(${c / 100}) sepia(${s / 100})${ns}${g} !important;
 }
@@ -267,8 +323,8 @@ img, picture, video, svg, iframe,
 `;
   }
 
-  /* Structural recolor — gray canvas + dark text; sliders = brightness/contrast only (+ optional grayscale). */
-  const surf = surfaceBgFromRoot(rootBg);
+  /* Structural recolor — palette + light text; sliders = brightness/contrast only (+ optional grayscale). */
+  const surf = surface;
   const tune = `brightness(${b / 100}) contrast(${c / 100})${g}`;
   const wNight = settings.nightShiftEnabled
     ? Math.min(1, Math.max(0, (Number(settings.nightShiftWarmth) || 0) / 100))
@@ -277,13 +333,13 @@ img, picture, video, svg, iframe,
 
   return `
 :root {
-  color-scheme: light !important;
+  color-scheme: dark !important;
   --bv-bg: ${rootBg};
   --bv-surface: ${surf};
   --bv-fg: ${rootFg};
-  --bv-link: ${BV_LINK};
-  --bv-border: ${BV_BORDER};
-  --bv-input: ${BV_INPUT};
+  --bv-link: ${link};
+  --bv-border: ${border};
+  --bv-input: ${input};
 }
 html {
   background-color: var(--bv-bg) !important;
@@ -377,7 +433,7 @@ function applyBlackveil(settings) {
   }
 
   const styleMode = pickStyleMode(settings);
-  const rootBg = rootBgFromTone(settings.rootBgTone || 'soft', styleMode);
+  const rootBg = getPaletteTokens(settings).rootBg;
   ensureSyncVeil(rootBg);
   document.documentElement.setAttribute(DATA_ATTR, 'on');
 
@@ -403,6 +459,9 @@ function normalizeMergedSettings(raw) {
   const m = { ...STORAGE_DEFAULTS, ...raw };
   m.allowedSites = Array.isArray(m.allowedSites) ? m.allowedSites : [];
   m.respectSiteThemes = Array.isArray(m.respectSiteThemes) ? m.respectSiteThemes : [];
+  if (!m.colorPaletteId || !paletteMap()[m.colorPaletteId]) {
+    m.colorPaletteId = DEFAULT_PALETTE_ID;
+  }
   return m;
 }
 
