@@ -267,38 +267,40 @@ function buildCss(settings, mode) {
   const g = grayscaleExtra(settings);
   const formFixCss = `
 button, input, textarea, select, optgroup {
-  background-color: ${input} !important;
-  color: ${rootFg} !important;
-  -webkit-text-fill-color: ${rootFg} !important;
-  border-color: ${border} !important;
+  background-color: var(--bv-input) !important;
+  background-image: none !important;
+  color: var(--bv-fg) !important;
+  -webkit-text-fill-color: var(--bv-fg) !important;
+  border: 1px solid var(--bv-border) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  caret-color: var(--bv-fg) !important;
 }
 textarea, [contenteditable=""], [contenteditable="true"], [role="textbox"] {
-  background-color: ${input} !important;
-  color: ${rootFg} !important;
-  -webkit-text-fill-color: ${rootFg} !important;
-  border-color: ${border} !important;
-  caret-color: ${rootFg} !important;
+  background-color: var(--bv-input) !important;
+  background-image: none !important;
+  color: var(--bv-fg) !important;
+  -webkit-text-fill-color: var(--bv-fg) !important;
+  border: 1px solid var(--bv-border) !important;
+  caret-color: var(--bv-fg) !important;
 }
 [contenteditable], [role="textbox"],
 .ql-container, .ql-editor, .ProseMirror,
 .DraftEditor-root, .public-DraftEditor-content {
-  background-color: ${input} !important;
-  color: ${rootFg} !important;
-  -webkit-text-fill-color: ${rootFg} !important;
-  border-color: ${border} !important;
+  background-color: var(--bv-input) !important;
+  background-image: none !important;
+  color: var(--bv-fg) !important;
+  -webkit-text-fill-color: var(--bv-fg) !important;
+  border: 1px solid var(--bv-border) !important;
 }
 [contenteditable] *, [role="textbox"] *,
 .ql-editor *, .ProseMirror *, .DraftEditor-root * {
-  color: ${rootFg} !important;
-  -webkit-text-fill-color: ${rootFg} !important;
+  background-image: none !important;
+  color: var(--bv-fg) !important;
+  -webkit-text-fill-color: var(--bv-fg) !important;
 }
 input::placeholder, textarea::placeholder, [contenteditable]::placeholder {
-  color: ${muted} !important;
-}
-/* Dark-native chat apps often keep neon border accents; tone them to palette border. */
-[class*="message"], [class*="Message"], [class*="bubble"], [class*="Bubble"],
-[class*="thread"], [class*="Thread"], [class*="chat"], [class*="Chat"] {
-  border-color: ${border} !important;
+  color: var(--bv-muted) !important;
 }
 `;
 
@@ -307,7 +309,13 @@ input::placeholder, textarea::placeholder, [contenteditable]::placeholder {
     const cf = Math.min(1.08, 0.98 + (c / 100) * 0.1);
     const sep = (s / 100) * 0.35;
     return `
-:root { color-scheme: dark !important; }
+:root {
+  color-scheme: dark !important;
+  --bv-fg: ${rootFg};
+  --bv-border: ${border};
+  --bv-input: ${input};
+  --bv-muted: ${muted};
+}
 html {
   background-color: ${rootBg} !important;
   color: ${rootFg} !important;
@@ -324,7 +332,13 @@ ${formFixCss}
 
   if (mode === 'soft') {
     return `
-:root { color-scheme: dark !important; }
+:root {
+  color-scheme: dark !important;
+  --bv-fg: ${rootFg};
+  --bv-border: ${border};
+  --bv-input: ${input};
+  --bv-muted: ${muted};
+}
 html {
   background-color: ${rootBg} !important;
   color: ${rootFg} !important;
@@ -351,6 +365,10 @@ html {
   filter: invert(1) hue-rotate(180deg) brightness(${b / 100}) contrast(${c / 100}) sepia(${s / 100})${ns}${g} !important;
 }
 body { background-color: transparent !important; }
+input, textarea, [contenteditable], [role="textbox"] {
+  /* After page invert, this maps to a visible light caret. */
+  caret-color: #000 !important;
+}
 img, picture, video, svg, iframe,
 [role="img"], object, embed {
   filter: invert(1) hue-rotate(180deg) !important;
@@ -406,45 +424,71 @@ body {
 main, article, section, nav, aside, header, footer, form,
 [role="main"], [role="navigation"], [role="banner"], [role="contentinfo"], [role="dialog"],
 [class*="container"], [class*="wrapper"], [class*="content"], [class*="layout"], [class*="Card"], [class*="card"],
-[id*="content"], [id*="main"], [id*="wrapper"] {
+[id*="content"], [id*="main"], [id*="wrapper"],
+div[class*="container"], div[class*="wrapper"], div[class*="content"], div[class*="layout"],
+div[class*="panel"], div[class*="section"], div[class*="body"],
+div[id*="content"], div[id*="main"], div[id*="root"] {
   background-color: var(--bv-bg) !important;
   color: var(--bv-fg) !important;
 }
 div {
+  background-color: transparent !important;
+}
+/* Preserve transparency on decorative/overlay elements to avoid flattening the UI. */
+div[style*="background: transparent"], div[style*="background-color: transparent"],
+div[aria-hidden="true"], div[class*="icon"], div[class*="avatar"], div[class*="badge"] {
+  background-color: transparent !important;
+}
+[class*="message"], [class*="Message"], [class*="bubble"], [class*="Bubble"],
+[class*="thread"], [class*="Thread"], [class*="chat"], [class*="Chat"],
+[class*="container"], [class*="Container"], [class*="card"], [class*="Card"] {
+  box-shadow: none !important;
+  outline: none !important;
+}
+/* Chat app specific: keep outer bubble themed, but avoid nested opaque layers. */
+.chat-bubble-body {
   background-color: var(--bv-bg) !important;
-  color: var(--bv-fg) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+[class^="chat-template-"], [class*=" chat-template-"] {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+[class^="chat-template-"] *, [class*=" chat-template-"] * {
+  background-color: transparent !important;
+}
+[class*="message"]::before, [class*="message"]::after,
+[class*="Message"]::before, [class*="Message"]::after,
+[class*="bubble"]::before, [class*="bubble"]::after,
+[class*="Bubble"]::before, [class*="Bubble"]::after {
+  content: none !important;
+  background: none !important;
+  border: none !important;
+}
+.chat-bubble-body::before, .chat-bubble-body::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  border: none !important;
 }
 p, span, li, dd, dt, label, figcaption, h1, h2, h3, h4, h5, h6,
 blockquote, small, strong, em, b, i, cite {
   color: var(--bv-fg) !important;
 }
 a, a:visited { color: var(--bv-link) !important; }
-button, input, textarea, select, optgroup {
-  background-color: var(--bv-input) !important;
-  color: var(--bv-fg) !important;
-  border-color: var(--bv-border) !important;
-}
-textarea, [contenteditable=""], [contenteditable="true"], [role="textbox"] {
-  background-color: var(--bv-input) !important;
-  color: var(--bv-fg) !important;
-  border-color: var(--bv-border) !important;
-  caret-color: var(--bv-fg) !important;
-}
-input::placeholder, textarea::placeholder, [contenteditable]::placeholder {
-  color: var(--bv-muted) !important;
-}
-table, thead, tbody, tfoot, tr { background-color: var(--bv-bg) !important; border-color: var(--bv-border) !important; }
+${formFixCss}
+table, thead, tbody, tfoot, tr { background-color: var(--bv-bg) !important; }
 th, td {
   background-color: var(--bv-surface) !important;
   color: var(--bv-fg) !important;
-  border-color: var(--bv-border) !important;
 }
 pre, code, kbd, samp {
   background-color: var(--bv-surface) !important;
   color: var(--bv-fg) !important;
-  border-color: var(--bv-border) !important;
 }
-hr { border-color: var(--bv-border) !important; background-color: var(--bv-border) !important; }
+hr { background-color: var(--bv-border) !important; }
 ul, ol, dl { background-color: transparent !important; color: var(--bv-fg) !important; }
 img, picture, video, canvas, iframe, embed, object {
   background-color: transparent !important;
