@@ -269,16 +269,36 @@ function buildCss(settings, mode) {
 button, input, textarea, select, optgroup {
   background-color: ${input} !important;
   color: ${rootFg} !important;
+  -webkit-text-fill-color: ${rootFg} !important;
   border-color: ${border} !important;
 }
 textarea, [contenteditable=""], [contenteditable="true"], [role="textbox"] {
   background-color: ${input} !important;
   color: ${rootFg} !important;
+  -webkit-text-fill-color: ${rootFg} !important;
   border-color: ${border} !important;
   caret-color: ${rootFg} !important;
 }
+[contenteditable], [role="textbox"],
+.ql-container, .ql-editor, .ProseMirror,
+.DraftEditor-root, .public-DraftEditor-content {
+  background-color: ${input} !important;
+  color: ${rootFg} !important;
+  -webkit-text-fill-color: ${rootFg} !important;
+  border-color: ${border} !important;
+}
+[contenteditable] *, [role="textbox"] *,
+.ql-editor *, .ProseMirror *, .DraftEditor-root * {
+  color: ${rootFg} !important;
+  -webkit-text-fill-color: ${rootFg} !important;
+}
 input::placeholder, textarea::placeholder, [contenteditable]::placeholder {
   color: ${muted} !important;
+}
+/* Dark-native chat apps often keep neon border accents; tone them to palette border. */
+[class*="message"], [class*="Message"], [class*="bubble"], [class*="Bubble"],
+[class*="thread"], [class*="Thread"], [class*="chat"], [class*="Chat"] {
+  border-color: ${border} !important;
 }
 `;
 
@@ -469,9 +489,10 @@ function applyBlackveil(settings) {
   if (!style) {
     style = document.createElement('style');
     style.id = STYLE_MAIN_ID;
-    (document.head || document.documentElement).appendChild(style);
   }
   style.textContent = cssText;
+  // Keep Blackveil style last so late app styles don't override !important rules.
+  (document.head || document.documentElement).appendChild(style);
 
   const sync = document.getElementById(STYLE_SYNC_ID);
   if (sync) {
