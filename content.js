@@ -265,6 +265,22 @@ function buildCss(settings, mode) {
   const { rootBg, surface, fg: rootFg, link, border, input, muted } = tokens;
   const ns = nightShiftFilterExtra(settings);
   const g = grayscaleExtra(settings);
+  const formFixCss = `
+button, input, textarea, select, optgroup {
+  background-color: ${input} !important;
+  color: ${rootFg} !important;
+  border-color: ${border} !important;
+}
+textarea, [contenteditable=""], [contenteditable="true"], [role="textbox"] {
+  background-color: ${input} !important;
+  color: ${rootFg} !important;
+  border-color: ${border} !important;
+  caret-color: ${rootFg} !important;
+}
+input::placeholder, textarea::placeholder, [contenteditable]::placeholder {
+  color: ${muted} !important;
+}
+`;
 
   if (mode === 'minimal') {
     const bf = Math.min(1.05, 0.94 + (b / 100) * 0.1);
@@ -282,6 +298,7 @@ body {
   color: inherit !important;
 }
 a, a:visited { color: ${link} !important; }
+${formFixCss}
 `;
   }
 
@@ -300,6 +317,7 @@ a, a:visited { color: ${link} !important; }
 html {
   filter: brightness(${b / 100}) contrast(${c / 100}) sepia(${s / 100})${ns}${g} !important;
 }
+${formFixCss}
 `;
   }
 
