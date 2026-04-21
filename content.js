@@ -262,7 +262,7 @@ function buildCss(settings, mode) {
   const c = Number(settings.contrast) || 105;
   const s = Number(settings.sepia) || 0;
   const tokens = getPaletteTokens(settings);
-  const { rootBg, surface, fg: rootFg, link, border, input } = tokens;
+  const { rootBg, surface, fg: rootFg, link, border, input, muted } = tokens;
   const ns = nightShiftFilterExtra(settings);
   const g = grayscaleExtra(settings);
 
@@ -340,6 +340,7 @@ img, picture, video, svg, iframe,
   --bv-link: ${link};
   --bv-border: ${border};
   --bv-input: ${input};
+  --bv-muted: ${muted};
 }
 html {
   background-color: var(--bv-bg) !important;
@@ -370,12 +371,10 @@ main, article, section, nav, aside, header, footer, form,
 [id*="content"], [id*="main"], [id*="wrapper"] {
   background-color: var(--bv-bg) !important;
   color: var(--bv-fg) !important;
-  border-color: var(--bv-border) !important;
 }
 div {
   background-color: var(--bv-bg) !important;
   color: var(--bv-fg) !important;
-  border-color: var(--bv-border) !important;
 }
 p, span, li, dd, dt, label, figcaption, h1, h2, h3, h4, h5, h6,
 blockquote, small, strong, em, b, i, cite {
@@ -386,6 +385,15 @@ button, input, textarea, select, optgroup {
   background-color: var(--bv-input) !important;
   color: var(--bv-fg) !important;
   border-color: var(--bv-border) !important;
+}
+textarea, [contenteditable=""], [contenteditable="true"], [role="textbox"] {
+  background-color: var(--bv-input) !important;
+  color: var(--bv-fg) !important;
+  border-color: var(--bv-border) !important;
+  caret-color: var(--bv-fg) !important;
+}
+input::placeholder, textarea::placeholder, [contenteditable]::placeholder {
+  color: var(--bv-muted) !important;
 }
 table, thead, tbody, tfoot, tr { background-color: var(--bv-bg) !important; border-color: var(--bv-border) !important; }
 th, td {
