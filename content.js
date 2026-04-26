@@ -328,6 +328,80 @@ input::placeholder, textarea::placeholder, [contenteditable]::placeholder {
 }
 `;
 
+  /* Native + custom dropdown panels: forced mode sets light text on all li/span; pale menus become unreadable. */
+  const dropdownPanelCss = `
+select option, select optgroup option {
+  background-color: var(--bv-surface) !important;
+  color: var(--bv-fg) !important;
+}
+[role="listbox"],
+[role="menu"],
+[role="menu"] [role="presentation"],
+[class*="Listbox"],
+[class*="listbox"],
+[class*="Menu-list"],
+[class*="menu-list"],
+[class*="Dropdown-menu"],
+[class*="dropdown-menu"],
+[class*="Select-menu"],
+[class*="select-menu"],
+[class*="popover-content"][class*="select"],
+[class*="combobox"] + [class*="list"],
+[class*="ComboboxOptions"],
+[class*="OptionsList"],
+[data-headlessui-state] [role="option"],
+[data-radix-popper-content-wrapper] [role="listbox"],
+[data-radix-popper-content-wrapper] [role="option"],
+.MuiPaper-root.MuiMenu-paper,
+.MuiAutocomplete-popper .MuiPaper-root,
+.MuiPopover-paper {
+  background-color: var(--bv-surface) !important;
+  color: var(--bv-fg) !important;
+}
+[role="listbox"] [role="option"],
+[role="menu"] [role="menuitem"],
+[role="menuitemradio"],
+[role="menuitemcheckbox"],
+.MuiMenuItem-root,
+.MuiAutocomplete-option,
+.MuiListItemButton-root,
+[class*="MenuItem"],
+[class*="menu-item"],
+[class*="dropdown-option"],
+[class*="select-option"],
+[data-headlessui-state][role="option"] {
+  background-color: var(--bv-surface) !important;
+  color: var(--bv-fg) !important;
+  -webkit-text-fill-color: var(--bv-fg) !important;
+}
+[role="listbox"] li,
+[role="menu"] li {
+  background-color: var(--bv-surface) !important;
+  color: var(--bv-fg) !important;
+  -webkit-text-fill-color: var(--bv-fg) !important;
+}
+[role="listbox"] li:hover,
+[role="menu"] li:hover {
+  background-color: var(--bv-input) !important;
+  color: var(--bv-fg) !important;
+}
+[role="option"]:hover,
+[role="menuitem"]:hover,
+.MuiMenuItem-root:hover,
+.MuiAutocomplete-option:hover,
+.MuiListItemButton-root:hover,
+[class*="MenuItem"]:hover {
+  background-color: var(--bv-input) !important;
+  color: var(--bv-fg) !important;
+}
+[role="option"][aria-selected="true"],
+.Mui-selected.MuiMenuItem-root,
+.MuiAutocomplete-option[aria-selected="true"] {
+  background-color: var(--bv-input) !important;
+  color: var(--bv-link) !important;
+}
+`;
+
   const inputAffixCss = `
 span:has(+ input[type="search"]),
 div:has(+ input[type="search"]),
@@ -398,6 +472,7 @@ div:has(> input[type="text"][placeholder*="Search"]) > *:first-child:not(input) 
   --bv-link: ${link};
   --bv-border: ${border};
   --bv-input: ${input};
+  --bv-surface: ${surface};
   --bv-muted: ${muted};
 }
 html {
@@ -410,7 +485,7 @@ body {
   color: inherit !important;
 }
 a, a:visited { color: ${link} !important; }
-${formFixCss}${inputAffixCss}
+${formFixCss}${inputAffixCss}${dropdownPanelCss}
 `;
   }
 
@@ -422,6 +497,7 @@ ${formFixCss}${inputAffixCss}
   --bv-link: ${link};
   --bv-border: ${border};
   --bv-input: ${input};
+  --bv-surface: ${surface};
   --bv-muted: ${muted};
 }
 html {
@@ -436,7 +512,7 @@ a, a:visited { color: ${link} !important; }
 html {
   filter: brightness(${b / 100}) contrast(${c / 100}) sepia(${s / 100})${ns}${g} !important;
 }
-${formFixCss}${inputAffixCss}
+${formFixCss}${inputAffixCss}${dropdownPanelCss}
 `;
   }
 
@@ -563,7 +639,7 @@ blockquote, small, strong, em, b, i, cite {
   color: var(--bv-fg) !important;
 }
 a, a:visited { color: var(--bv-link) !important; }
-${formFixCss}${inputAffixCss}
+${formFixCss}${inputAffixCss}${dropdownPanelCss}
 table, thead, tbody, tfoot, tr { background-color: var(--bv-bg) !important; }
 th, td {
   background-color: var(--bv-surface) !important;
