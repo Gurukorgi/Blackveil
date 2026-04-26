@@ -242,6 +242,10 @@ function isGoogleDocsEditorHost() {
   return h === 'docs.google.com';
 }
 
+function isNicholasAccountsHost() {
+  return getHostname() === 'accounts.nicholasidoko.com';
+}
+
 /**
  * minimal = respect + page already themed dark (gentle polish only).
  * soft = page already themed dark, light filter tweak.
@@ -265,6 +269,7 @@ function buildCss(settings, mode) {
   const { rootBg, surface, fg: rootFg, link, border, input, muted } = tokens;
   const ns = nightShiftFilterExtra(settings);
   const g = grayscaleExtra(settings);
+  const preserveNicholasWhatsAppUi = isNicholasAccountsHost();
   /** Darker ink + input-toned chip so search / contact field icons are not light-on-light vs --bv-fg spans. */
   const iconAdorn = mixHex(muted, rootBg, 0.52);
   /* Text-like controls only: applying background-image:none to all inputs removed checkbox/radio marks. */
@@ -305,7 +310,6 @@ textarea, [contenteditable=""], [contenteditable="true"], [role="textbox"] {
   background-image: none !important;
   color: var(--bv-fg) !important;
   -webkit-text-fill-color: var(--bv-fg) !important;
-  border: 1px solid var(--bv-border) !important;
   caret-color: var(--bv-fg) !important;
 }
 [contenteditable], [role="textbox"],
@@ -315,7 +319,6 @@ textarea, [contenteditable=""], [contenteditable="true"], [role="textbox"] {
   background-image: none !important;
   color: var(--bv-fg) !important;
   -webkit-text-fill-color: var(--bv-fg) !important;
-  border: 1px solid var(--bv-border) !important;
 }
 [contenteditable] *, [role="textbox"] *,
 .ql-editor *, .ProseMirror *, .DraftEditor-root * {
@@ -461,6 +464,36 @@ div:has(> input[type="text"][placeholder*="Search"]) > *:first-child:not(input) 
 }
 `;
 
+  const siteSpecificUiGuardCss = preserveNicholasWhatsAppUi
+    ? `
+/* Preserve native WhatsApp inbox hierarchy on this host. */
+.chat-composer-input-wrap,
+#chat-message-input,
+.chat-composer-actions,
+.chat-emoji-dropdown .btn,
+.chat-media-dropdown .btn,
+#chat-send-button,
+.chat-bubble,
+.chat-quoted-reply,
+.chat-contact-card,
+.chat-media-preview figure,
+.chat-reply-preview {
+  background: revert !important;
+  background-color: revert !important;
+  border: revert !important;
+  box-shadow: revert !important;
+  outline: revert !important;
+  color: revert !important;
+  -webkit-text-fill-color: revert !important;
+}
+#chat-send-button .chat-send-button-label,
+#chat-send-button .material-icons {
+  color: revert !important;
+  -webkit-text-fill-color: revert !important;
+}
+`
+    : '';
+
   if (mode === 'minimal') {
     const bf = Math.min(1.05, 0.94 + (b / 100) * 0.1);
     const cf = Math.min(1.08, 0.98 + (c / 100) * 0.1);
@@ -485,7 +518,7 @@ body {
   color: inherit !important;
 }
 a, a:visited { color: ${link} !important; }
-${formFixCss}${inputAffixCss}${dropdownPanelCss}
+${formFixCss}${inputAffixCss}${dropdownPanelCss}${siteSpecificUiGuardCss}
 `;
   }
 
@@ -512,7 +545,7 @@ a, a:visited { color: ${link} !important; }
 html {
   filter: brightness(${b / 100}) contrast(${c / 100}) sepia(${s / 100})${ns}${g} !important;
 }
-${formFixCss}${inputAffixCss}${dropdownPanelCss}
+${formFixCss}${inputAffixCss}${dropdownPanelCss}${siteSpecificUiGuardCss}
 `;
   }
 
@@ -600,12 +633,6 @@ div[style*="background: transparent"], div[style*="background-color: transparent
 div[aria-hidden="true"], div[class*="icon"], div[class*="avatar"], div[class*="badge"] {
   background-color: transparent !important;
 }
-[class*="message"], [class*="Message"], [class*="bubble"], [class*="Bubble"],
-[class*="thread"], [class*="Thread"], [class*="chat"], [class*="Chat"],
-[class*="container"], [class*="Container"], [class*="card"], [class*="Card"] {
-  box-shadow: none !important;
-  outline: none !important;
-}
 /* Chat app specific: keep outer bubble themed, but avoid nested opaque layers. */
 .chat-bubble-body {
   background-color: var(--bv-bg) !important;
@@ -620,14 +647,6 @@ div[aria-hidden="true"], div[class*="icon"], div[class*="avatar"], div[class*="b
 [class^="chat-template-"] *, [class*=" chat-template-"] * {
   background-color: transparent !important;
 }
-[class*="message"]::before, [class*="message"]::after,
-[class*="Message"]::before, [class*="Message"]::after,
-[class*="bubble"]::before, [class*="bubble"]::after,
-[class*="Bubble"]::before, [class*="Bubble"]::after {
-  content: none !important;
-  background: none !important;
-  border: none !important;
-}
 .chat-bubble-body::before, .chat-bubble-body::after {
   display: none !important;
   content: none !important;
@@ -639,7 +658,7 @@ blockquote, small, strong, em, b, i, cite {
   color: var(--bv-fg) !important;
 }
 a, a:visited { color: var(--bv-link) !important; }
-${formFixCss}${inputAffixCss}${dropdownPanelCss}
+${formFixCss}${inputAffixCss}${dropdownPanelCss}${siteSpecificUiGuardCss}
 table, thead, tbody, tfoot, tr { background-color: var(--bv-bg) !important; }
 th, td {
   background-color: var(--bv-surface) !important;
