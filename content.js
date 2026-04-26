@@ -14,7 +14,7 @@ const STORAGE_DEFAULTS = {
   allowedSites: [],
   respectSiteThemes: [],
   brightness: 95,
-  contrast: 105,
+  contrast: 98,
   sepia: 8,
   nightShiftEnabled: false,
   nightShiftWarmth: 40,
@@ -151,7 +151,7 @@ function getPaletteTokens(settings) {
     return {
       rootBg: '#18181B',
       surface: '#27272A',
-      fg: '#FAFAFA',
+      fg: '#E4E4E7',
       link: '#2563EB',
       border: '#3f3f46',
       input: '#3f3f46',
@@ -259,14 +259,21 @@ function pickStyleMode(settings) {
 
 function buildCss(settings, mode) {
   const b = Number(settings.brightness) || 95;
-  const c = Number(settings.contrast) || 105;
+  const c = Number(settings.contrast) || 98;
   const s = Number(settings.sepia) || 0;
   const tokens = getPaletteTokens(settings);
   const { rootBg, surface, fg: rootFg, link, border, input, muted } = tokens;
   const ns = nightShiftFilterExtra(settings);
   const g = grayscaleExtra(settings);
+  /** Darker ink + input-toned chip so search / contact field icons are not light-on-light vs --bv-fg spans. */
+  const iconAdorn = mixHex(muted, rootBg, 0.52);
+  /* Text-like controls only: applying background-image:none to all inputs removed checkbox/radio marks. */
   const formFixCss = `
-button, input, textarea, select, optgroup {
+button, textarea, select, optgroup,
+input:not([type]), input[type="text"], input[type="search"], input[type="url"], input[type="tel"],
+input[type="email"], input[type="password"], input[type="number"], input[type="date"],
+input[type="datetime-local"], input[type="time"], input[type="month"], input[type="week"],
+input[type="submit"], input[type="reset"], input[type="button"] {
   background-color: var(--bv-input) !important;
   background-image: none !important;
   color: var(--bv-fg) !important;
@@ -275,6 +282,23 @@ button, input, textarea, select, optgroup {
   box-shadow: none !important;
   outline: none !important;
   caret-color: var(--bv-fg) !important;
+}
+input[type="checkbox"], input[type="radio"] {
+  background-color: var(--bv-input) !important;
+  accent-color: var(--bv-link) !important;
+  color: var(--bv-fg) !important;
+  border: 1px solid var(--bv-border) !important;
+  caret-color: var(--bv-fg) !important;
+}
+input[type="range"] {
+  accent-color: var(--bv-link) !important;
+}
+input[type="file"] {
+  color: var(--bv-fg) !important;
+  border-color: var(--bv-border) !important;
+}
+input[type="color"] {
+  border: 1px solid var(--bv-border) !important;
 }
 textarea, [contenteditable=""], [contenteditable="true"], [role="textbox"] {
   background-color: var(--bv-input) !important;
@@ -304,6 +328,65 @@ input::placeholder, textarea::placeholder, [contenteditable]::placeholder {
 }
 `;
 
+  const inputAffixCss = `
+span:has(+ input[type="search"]),
+div:has(+ input[type="search"]),
+i:has(+ input[type="search"]),
+span:has(+ input[type="text"][placeholder*="search" i]),
+div:has(+ input[type="text"][placeholder*="search" i]),
+i:has(+ input[type="text"][placeholder*="search" i]),
+span:has(+ input[type="text"][placeholder*="Search"]),
+div:has(+ input[type="text"][placeholder*="Search"]),
+i:has(+ input[type="text"][placeholder*="Search"]) {
+  background-color: var(--bv-input) !important;
+  color: ${iconAdorn} !important;
+  -webkit-text-fill-color: ${iconAdorn} !important;
+}
+span:has(+ input[type="search"]) svg,
+div:has(+ input[type="search"]) svg,
+i:has(+ input[type="search"]) svg,
+span:has(+ input[type="text"][placeholder*="search" i]) svg,
+div:has(+ input[type="text"][placeholder*="search" i]) svg,
+i:has(+ input[type="text"][placeholder*="search" i]) svg,
+span:has(+ input[type="text"][placeholder*="Search"]) svg,
+div:has(+ input[type="text"][placeholder*="Search"]) svg,
+i:has(+ input[type="text"][placeholder*="Search"]) svg {
+  color: ${iconAdorn} !important;
+  fill: ${iconAdorn} !important;
+  stroke: ${iconAdorn} !important;
+}
+div:has(> input[type="search"]) > *:first-child:not(input),
+div:has(> input[type="text"][placeholder*="search" i]) > *:first-child:not(input),
+div:has(> input[type="text"][placeholder*="Search"]) > *:first-child:not(input) {
+  background-color: var(--bv-input) !important;
+  color: ${iconAdorn} !important;
+  -webkit-text-fill-color: ${iconAdorn} !important;
+}
+div:has(> input[type="search"]) > *:first-child:not(input) svg,
+div:has(> input[type="text"][placeholder*="search" i]) > *:first-child:not(input) svg,
+div:has(> input[type="text"][placeholder*="Search"]) > *:first-child:not(input) svg {
+  color: ${iconAdorn} !important;
+  fill: ${iconAdorn} !important;
+  stroke: ${iconAdorn} !important;
+}
+.MuiInputBase-root:has(input[type="search"]) .MuiInputAdornment-positionStart,
+.MuiInputBase-root:has(input[placeholder*="search" i]) .MuiInputAdornment-positionStart,
+[class*="InputBase-root"]:has(input[type="search"]) [class*="InputAdornment-positionStart"],
+[class*="InputBase-root"]:has(input[placeholder*="search" i]) [class*="InputAdornment-positionStart"] {
+  background-color: var(--bv-input) !important;
+  color: ${iconAdorn} !important;
+  -webkit-text-fill-color: ${iconAdorn} !important;
+}
+.MuiInputBase-root:has(input[type="search"]) .MuiInputAdornment-positionStart svg,
+.MuiInputBase-root:has(input[placeholder*="search" i]) .MuiInputAdornment-positionStart svg,
+[class*="InputBase-root"]:has(input[type="search"]) [class*="InputAdornment"] svg,
+[class*="InputBase-root"]:has(input[placeholder*="search" i]) [class*="InputAdornment"] svg {
+  color: ${iconAdorn} !important;
+  fill: ${iconAdorn} !important;
+  stroke: ${iconAdorn} !important;
+}
+`;
+
   if (mode === 'minimal') {
     const bf = Math.min(1.05, 0.94 + (b / 100) * 0.1);
     const cf = Math.min(1.08, 0.98 + (c / 100) * 0.1);
@@ -312,6 +395,7 @@ input::placeholder, textarea::placeholder, [contenteditable]::placeholder {
 :root {
   color-scheme: dark !important;
   --bv-fg: ${rootFg};
+  --bv-link: ${link};
   --bv-border: ${border};
   --bv-input: ${input};
   --bv-muted: ${muted};
@@ -326,7 +410,7 @@ body {
   color: inherit !important;
 }
 a, a:visited { color: ${link} !important; }
-${formFixCss}
+${formFixCss}${inputAffixCss}
 `;
   }
 
@@ -335,6 +419,7 @@ ${formFixCss}
 :root {
   color-scheme: dark !important;
   --bv-fg: ${rootFg};
+  --bv-link: ${link};
   --bv-border: ${border};
   --bv-input: ${input};
   --bv-muted: ${muted};
@@ -351,7 +436,7 @@ a, a:visited { color: ${link} !important; }
 html {
   filter: brightness(${b / 100}) contrast(${c / 100}) sepia(${s / 100})${ns}${g} !important;
 }
-${formFixCss}
+${formFixCss}${inputAffixCss}
 `;
   }
 
@@ -478,7 +563,7 @@ blockquote, small, strong, em, b, i, cite {
   color: var(--bv-fg) !important;
 }
 a, a:visited { color: var(--bv-link) !important; }
-${formFixCss}
+${formFixCss}${inputAffixCss}
 table, thead, tbody, tfoot, tr { background-color: var(--bv-bg) !important; }
 th, td {
   background-color: var(--bv-surface) !important;

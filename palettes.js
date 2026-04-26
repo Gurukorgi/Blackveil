@@ -12,7 +12,7 @@
       primary: '#3B82F6',
       secondary: '#64748B',
       accent: '#22C55E',
-      textMain: '#E2E8F0',
+      textMain: '#D8DEE9',
       textMuted: '#94A3B8',
     },
     {
@@ -23,7 +23,7 @@
       primary: '#BB86FC',
       secondary: '#03DAC6',
       accent: '#CF6679',
-      textMain: '#E0E0E0',
+      textMain: '#D4D4D4',
       textMuted: '#A0A0A0',
     },
     {
@@ -34,7 +34,7 @@
       primary: '#64FFDA',
       secondary: '#8892B0',
       accent: '#CCD6F6',
-      textMain: '#E6F1FF',
+      textMain: '#D8E4F5',
       textMuted: '#94A3B8',
     },
     {
@@ -45,7 +45,7 @@
       primary: '#F59E0B',
       secondary: '#D97706',
       accent: '#FCD34D',
-      textMain: '#F5F5F5',
+      textMain: '#E8E8E8',
       textMuted: '#B3B3B3',
     },
     {
@@ -56,7 +56,7 @@
       primary: '#7C3AED',
       secondary: '#A78BFA',
       accent: '#F472B6',
-      textMain: '#EDE9FE',
+      textMain: '#DDD6FE',
       textMuted: '#9CA3AF',
     },
     {
@@ -67,7 +67,7 @@
       primary: '#2563EB',
       secondary: '#52525B',
       accent: '#16A34A',
-      textMain: '#FAFAFA',
+      textMain: '#E4E4E7',
       textMuted: '#A1A1AA',
     },
     {
@@ -78,7 +78,7 @@
       primary: '#0EA5E9',
       secondary: '#22C55E',
       accent: '#F43F5E',
-      textMain: '#FFFFFF',
+      textMain: '#E8E8E8',
       textMuted: '#9CA3AF',
     },
   ];

@@ -7,8 +7,8 @@
   --bg-raised: #0f0f12;
   --bg-card: #12121a;
   --border: rgba(255, 255, 255, 0.08);
-  --text: #f0f0f5;
-  --muted: rgba(240, 240, 245, 0.65);
+  --text: #d8d8e2;
+  --muted: rgba(216, 216, 226, 0.58);
   --accent: #8b7cf7;
   --accent-dim: rgba(139, 124, 247, 0.35);
   --shadow: rgba(0, 0, 0, 0.45);
@@ -207,7 +207,7 @@ body {
 }
 
 .allow-callout strong {
-  color: #fff;
+  color: #f0ebe4;
 }
 
 .allow-callout.hidden {
@@ -392,8 +392,12 @@ body {
   cursor: pointer;
 }
 
-.respect-row input {
+.respect-row input,
+#scheduleEnabled {
   margin-top: 2px;
+  width: 1.05em;
+  height: 1.05em;
+  flex-shrink: 0;
   accent-color: var(--accent);
 }
 
@@ -487,7 +491,7 @@ body {
     rgba(139, 124, 247, 0.35),
     rgba(60, 50, 95, 0.45)
   );
-  color: #fff;
+  color: #eaeaf2;
   box-shadow: 0 0 0 1px rgba(139, 124, 247, 0.25), 0 8px 28px var(--shadow);
 }
 

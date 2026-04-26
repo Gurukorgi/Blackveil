@@ -9,7 +9,7 @@ const STORAGE_DEFAULTS = {
   allowedSites: [],
   respectSiteThemes: [],
   brightness: 95,
-  contrast: 105,
+  contrast: 98,
   sepia: 8,
   nightShiftEnabled: false,
   nightShiftWarmth: 40,
@@ -150,24 +150,49 @@ async function refreshAllContentTabs() {
   }
 }
 
-function buildContextMenus() {
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: 'bv-enable-site',
-      title: 'Enable Blackveil on this site',
-      contexts: ['page'],
-    });
-    chrome.contextMenus.create({
-      id: 'bv-disable-site',
-      title: 'Disable Blackveil on this site',
-      contexts: ['page'],
-    });
-    chrome.contextMenus.create({
-      id: 'bv-toggle-night',
-      title: 'Toggle Night Shift',
-      contexts: ['page', 'frame'],
+function contextMenusRemoveAll() {
+  return new Promise((resolve) => {
+    chrome.contextMenus.removeAll(() => {
+      void chrome.runtime.lastError;
+      resolve();
     });
   });
+}
+
+function contextMenuCreate(props) {
+  return new Promise((resolve) => {
+    chrome.contextMenus.create(props, () => {
+      void chrome.runtime.lastError;
+      resolve();
+    });
+  });
+}
+
+/** Serialized rebuild: overlapping onInstalled + onStartup could create duplicate ids before removeAll finished. */
+let contextMenuSetupChain = Promise.resolve();
+
+function buildContextMenus() {
+  contextMenuSetupChain = contextMenuSetupChain
+    .catch(() => {})
+    .then(async () => {
+      await contextMenusRemoveAll();
+      await contextMenuCreate({
+        id: 'bv-enable-site',
+        title: 'Enable Blackveil on this site',
+        contexts: ['page'],
+      });
+      await contextMenuCreate({
+        id: 'bv-disable-site',
+        title: 'Disable Blackveil on this site',
+        contexts: ['page'],
+      });
+      await contextMenuCreate({
+        id: 'bv-toggle-night',
+        title: 'Toggle Night Shift',
+        contexts: ['page', 'frame'],
+      });
+    });
+  return contextMenuSetupChain;
 }
 
 chrome.runtime.onInstalled.addListener(() => {
